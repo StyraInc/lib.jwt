@@ -1,0 +1,39 @@
+rules:
+  custom:
+    missing-metadata:
+      level: error
+      ignore:
+        files:
+          - "*_test.rego"
+          - "bundle/example/**"
+    forbidden-function-call:
+      level: error
+      forbidden-functions:
+        - io.jwt.decode_verify
+        - io.jwt.verify_hs256
+        - io.jwt.verify_hs384
+        - io.jwt.verify_hs512
+        - io.jwt.verify_rs256
+        - io.jwt.verify_rs384
+        - io.jwt.verify_rs512
+        - io.jwt.verify_es256
+        - io.jwt.verify_es384
+        - io.jwt.verify_es512
+        - io.jwt.verify_ps256
+        - io.jwt.verify_ps384
+        - io.jwt.verify_ps512
+      ignore:
+        files:
+          - bundle/lib/**
+  idiomatic:
+    directory-package-mismatch:
+      exclude-test-suffix: false
+  style:
+    external-reference:
+      level: ignore
+    line-length:
+      non-breakable-word-threshold: 100
+
+project:
+  roots:
+    - bundle
