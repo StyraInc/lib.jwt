@@ -31,7 +31,16 @@ for working with JWTs in production:
 ```json
 {
   "allowed_issuers": ["https://identity.example.com"],
-  "allowed_algorithms": ["RS512", "ES512"]
+  "allowed_algorithms": ["RS512", "ES512"],
+  "jwks": {
+    "keys": [
+      {
+        "kty": "RSA",
+        "n": "0uUZ4XpiWu4ds6SxR-5xH6Lxu45mwgw6FDfZVZ-vGu1tsuZaUgdrJ-smKVX4L7Qa_q2pKPPepKnWhlktwXYNIk1ILkWSMLCBBzTWgulh5TTl3WCPjpzLKS4ZX0uoCt3wylIozzDIajGpSLve_xQ6G56FtZwlUC1lMPRBOV3ULOXAP24u5fwmWE6kX_rj6VW7Q4FpWo5kIQsNIukGzX6JznbxgX9NDWXpXgD8-MhnLIWtfPFK5S-BFoQGk4fXyuOVTcWFecwlh9SPbeCSQrVv1GnXFdGW1lFljK9QIhXWK38D7mdD279jrw9UW065ktnfZ4VxjjPa2COAzYEA85eRZQ",
+        "e": "AQAB"
+      }
+    ]
+  }
 }
 ```
 
@@ -39,6 +48,7 @@ for working with JWTs in production:
   where one must match the `iss` claim from the JWT
 - `allowed_algorithms` - **optional** a list of allowed algorithms
   (default: `["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512"]`)
+- `jwks` - **optional** the JWK Set object to use for verifying tokens
 
 ## Functions
 
