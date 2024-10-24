@@ -24,7 +24,7 @@ rules:
         - io.jwt.verify_ps512
       ignore:
         files:
-          - bundle/lib/**
+          - "bundle/lib/**/*"
   idiomatic:
     directory-package-mismatch:
       exclude-test-suffix: false

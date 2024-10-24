@@ -61,26 +61,6 @@ All examples above assume `data.lib.jwt` is imported in the policy.
 Some organizations may want to enforce the use of this library and prevent using the built-in JWT functions directly.
 This can be achieved using two different approaches.
 
-### Capabilities
-
-The first option is to use the
-[capabilities feature](https://www.openpolicyagent.org/docs/latest/deployments/#capabilities) of OPA to restrict the
-available built-in functions at the time of building a bundle for production (likely in CI/CD).
-
-To obtain the capabilities JSON object for the current version of OPA:
-
-```shell
-opa capabilities --current > capabilities.json
-```
-
-Edit the file to remove any undesired built-in functions, then build your bundle with the `--capabilities` flag:
-
-```shell
-opa build --capabilities capabilities.json --bundle policy/
-```
-
-**Note** that this however requires that the `policy` bundle (from the example) is built separately from this library!
-
 ### Regal
 
 Another, more flexible option, is to use [Regal](https://docs.styra.com/regal) and the custom
@@ -115,6 +95,26 @@ rules:
 
 Note how anything under the `lib` directory is excepted from the rule, allowing this library (and possibly others)
 to handle verification.
+
+### Capabilities
+
+The first option is to use the
+[capabilities feature](https://www.openpolicyagent.org/docs/latest/deployments/#capabilities) of OPA to restrict the
+available built-in functions at the time of building a bundle for production (likely in CI/CD).
+
+To obtain the capabilities JSON object for the current version of OPA:
+
+```shell
+opa capabilities --current > capabilities.json
+```
+
+Edit the file to remove any undesired built-in functions, then build your bundle with the `--capabilities` flag:
+
+```shell
+opa build --capabilities capabilities.json --bundle policy/
+```
+
+**Note** that this however requires that the `policy` bundle (from the example) is built separately from this library!
 
 ## Testing
 
