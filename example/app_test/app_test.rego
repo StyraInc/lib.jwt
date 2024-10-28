@@ -1,18 +1,20 @@
-package example_test
+package example.app_test
 
 import rego.v1
 
-import data.example
+import data.example.app
+
+token := io.jwt.encode_sign(
+	{"typ": "JWT", "alg": "RS512"},
+	{
+		"iss": "https://issuer1.example.com",
+		"user": {"roles": ["admin"]},
+	},
+	rsa_private_key,
+)
 
 test_allow_valid_jwt if {
-	result := example.verified with input.jwt as io.jwt.encode_sign(
-		{"typ": "JWT", "alg": "RS512"},
-		{"iss": "https://issuer1.example.com"},
-		rsa_private_key,
-	)
-
-	result.claims == {"iss": "https://issuer1.example.com"}
-	result.headers == {"alg": "RS512", "typ": "JWT"}
+	app.allow with input.token as token
 }
 
 rsa_private_key := {

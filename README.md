@@ -28,6 +28,8 @@ for working with JWTs in production:
 
 ### Configuration
 
+At the heart of the library is the configuration object.
+
 ```json
 {
   "allowed_issuers": ["https://identity.example.com"],

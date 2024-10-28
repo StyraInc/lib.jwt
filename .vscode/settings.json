@@ -1,0 +1,11 @@
+{
+  "opa.roots": [
+    "${workspaceFolder}/example",
+    "${workspaceFolder}/lib"
+  ],
+  "opa.env": {
+    "OPA_CHECK_IGNORE": "*_test.rego",
+    "OPA_TEST_IGNORE": "*_test.rego",
+    "OPA_EVAL_IGNORE": "*_test.rego"
+  }
+}

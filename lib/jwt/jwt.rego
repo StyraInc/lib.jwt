@@ -16,8 +16,8 @@ import rego.v1
 # METADATA
 # description: |
 #   All algorithms supported by OPA, in uppercase. Note that the symmetric
-#   algorithms (HS256, HS384, HS512) is not supported by this library, as using them
-#   is almost always a bad idea.
+#   algorithms (HS256, HS384, HS512) are not supported by this library, as using them
+#   for anything but development/testing is almost always a bad idea.
 supported_algorithms := {
 	"RS256",
 	"RS384",
@@ -41,6 +41,43 @@ decode_verify(jwt, config) := result if {
 	# regal ignore:with-outside-test-context
 	result := _result with _config as object.union(config, {"jwt": jwt})
 }
+
+_input_path_jwt := _clean_path(arr) if {
+	is_string(data.lib.config.jwt.input_path_jwt)
+
+	path := trim_space(trim_prefix(trim_prefix(data.lib.config.jwt.input_path_jwt, "Bearer"), "bearer"))
+	arr := split(path, ".")
+}
+
+_input_path_jwt := _clean_path(data.lib.config.jwt.input_path_jwt) if is_array(data.lib.config.jwt.input_path_jwt)
+
+_clean_path(arr) := arr if not arr[0] == "input"
+
+_clean_path(arr) := array.slice(arr, 1, count(arr)) if arr[0] == "input"
+
+# METADATA
+# description: the claims of the verified JWT, from calling `decode_verify` direct
+claims := _result.claims
+
+# METADATA
+# description: the claims of the verified JWT, from config-based verification
+claims := _verified.claims
+
+# METADATA
+# description: the header of the verified JWT, from calling `decode_verify` direct
+header := _result.header
+
+# METADATA
+# description: the header of the verified JWT, from config-based verification
+header := _verified.header
+
+# METADATA
+# description: errors encountered while processing the JWT, from calling `decode_verify` direct
+errors := _result.errors
+
+# METADATA
+# description: the header of the verified JWT, from config-based verification
+errors := _verified.errors
 
 _config := {}
 
@@ -68,8 +105,11 @@ _errors contains sprintf("issuer %s not in list of allowed issuers", [_claims.is
 	not _claims.iss in _config.allowed_issuers
 }
 
-_keys_provided if {
-	count(_config.jwks) > 0
+_keys_provided if count(_config.jwks) > 0
+
+_verified := decode_verify(input_from_config, data.lib.config.jwt) if {
+	input_from_config := object.get(input, _input_path_jwt, null)
+	input_from_config != null
 }
 
 _result["errors"] := _errors if count(_errors) > 0
