@@ -3,8 +3,7 @@
     "config": {
       "jwt": {
         "allowed_issuers": [
-          "https://issuer1.example.com",
-          "https://issuer2.example.com"
+          "https://issuer1.example.com"
         ],
         "jwks": {
           "keys": [

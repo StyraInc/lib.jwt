@@ -46,13 +46,17 @@ At the heart of the library is the `config` object.
 }
 ```
 
+The `config` object can either be passed to the `jwt.decode_verify` function directly, or provided as part of e.g.
+a bundle `data.json` file for an entirely config-based approach.
+
 #### Configuration Attributes
 
-- `allowed_issuers` - **required** a list of allowed issuers (at least one issuer is required)
-  where one must match the `iss` claim from the JWT
+- `allowed_issuers` - **required** list of allowed issuers where one must match the `iss` claim from the JWT
 - `allowed_algorithms` - **optional** a list of allowed algorithms
   (default: `["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512"]`)
 - `jwks` - **optional** the JWK Set object to use for verifying tokens
+- `input_path_jwt` - **optional** the path in the `input` document where the library should look for the JWT
+  when using the [config-based approach](#configuration-driven-verification)
 
 ## Functions
 
@@ -65,13 +69,121 @@ Verifies the provided `jwt` using the given `config` object, which in addition t
 metadata or JWKS endpoint), may also include optional attributes that when present will be used to further
 verify the token.
 
-**Returns:** an object containing the following three properties:
+**Returns:** an object containing the following properties:
 
 - `header` - the decoded header from the JWT, if all verification requirements are met
 - `claims` - the decoded claims from the JWT, if all verification requirements are met
 - `errors` - a list of errors encountered during verification
 
-Neither the `header` nor the `claims` properties will be present if any verification requirements failed.
+Neither the `header` nor the `claims` properties will be present if any verification requirements failed
+to be met.
+
+#### Example
+
+A simple example of a policy using the `jwt.decode_verify` function might look like this:
+
+```rego
+package app.authz
+
+import data.lib.jwt
+
+verified := jwt.decode_verify(input.token, {
+    "allowed_issuers": ["https://identity.example.com"],
+    "allowed_algorithms": ["RS256"],
+    "jwks": {
+        "keys": [{
+            "kty": "RSA",
+            "n": "0uUZ4XpiWu4ds6SxR.....",
+            "e": "AQAB"
+        }]
+    }
+})
+
+decision.allow if {
+    not deny
+    allow
+}
+
+decision.reasons contains some verified.errors
+
+deny if count(verified.errors) > 0
+
+allow if {
+    "admin" in verified.claims.user.roles
+}
+
+allow if {
+    # more conditions
+}
+```
+
+## Configuration-driven Verification
+
+An alternative to using `jwt.decode_verify` directly is to simply provide the configuration as part of evaluation,
+for example by including it in a [bundle](https://www.openpolicyagent.org/docs/latest/management-bundles/). This
+library will automatically search for configuration under the path `data.lib.config.jwt`, and if found, use it for
+verification. When this configuration contains an `input_path_jwt` attribute, the library will look for the JWT at
+the specified path in the `input` document, and verify it without the need for custom code in the user's policy.
+
+### Example
+
+Given a bundle containing a `data.json` or `data.yaml` at its root, where the configuration is stored under
+`lib.config.jwt`, and an `input` document containing tokens for verification under `input.token`:
+
+**data.json**
+
+```json
+{
+  "lib": {
+    "config": {
+      "jwt": {
+        "allowed_issuers": [
+          "https://issuer1.example.com"
+        ],
+        "jwks": {
+          "keys": [
+            {
+              "kty": "RSA",
+              "n": "0uUZ4XpiWu4ds6SxR-5xH6Lxu45mwgw6FDfZVZ-vGu1tsuZaUgdrJ-smKVX4L7Qa_q2pKPPepKnWhlktwXYNIk1ILkWSMLCBBzTWgulh5TTl3WCPjpzLKS4ZX0uoCt3wylIozzDIajGpSLve_xQ6G56FtZwlUC1lMPRBOV3ULOXAP24u5fwmWE6kX_rj6VW7Q4FpWo5kIQsNIukGzX6JznbxgX9NDWXpXgD8-MhnLIWtfPFK5S-BFoQGk4fXyuOVTcWFecwlh9SPbeCSQrVv1GnXFdGW1lFljK9QIhXWK38D7mdD279jrw9UW065ktnfZ4VxjjPa2COAzYEA85eRZQ",
+              "e": "AQAB"
+            }
+          ]
+        },
+        "input_path_jwt": "input.token"
+      }
+    }
+  }
+}
+```
+
+Authorization policies are now able to use the attributes from the `jwt` object directly, and without explicitly
+calling the `jwt.decode_verify` function:
+
+```rego
+package app.authz
+
+import data.lib.jwt
+
+decision.allow if {
+    not deny
+    allow
+}
+
+decision.reasons contains some jwt.errors
+
+deny if count(jwt.errors) > 0
+
+allow if {
+    "admin" in jwt.claims.user.roles
+}
+
+allow if {
+    # more conditions
+}
+```
+
+Both methods work equally well, and the choice between them is largely a matter of preference. The difference is mainly
+where the call to `jwt.decode_verify` is made.
 
 ## Enforcing Usage
 
