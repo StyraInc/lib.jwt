@@ -28,7 +28,7 @@ for working with JWTs in production:
 
 ### Configuration
 
-At the heart of the library is the configuration object.
+At the heart of the library is the `config` object.
 
 ```json
 {
@@ -46,6 +46,8 @@ At the heart of the library is the configuration object.
 }
 ```
 
+#### Configuration Attributes
+
 - `allowed_issuers` - **required** a list of allowed issuers (at least one issuer is required)
   where one must match the `iss` claim from the JWT
 - `allowed_algorithms` - **optional** a list of allowed algorithms
@@ -56,9 +58,20 @@ At the heart of the library is the configuration object.
 
 All examples above assume `data.lib.jwt` is imported in the policy.
 
-### `jwt.verify(jwt, config)`
+### `jwt.decode_verify(jwt, config)`
 
+Verifies the provided `jwt` using the given `config` object, which in addition to required attributes (like
+`allowed_issuers`) and a method to verify the signature (either a `jwks` object or a reference to a remote
+metadata or JWKS endpoint), may also include optional attributes that when present will be used to further
+verify the token.
 
+**Returns:** an object containing the following three properties:
+
+- `header` - the decoded header from the JWT, if all verification requirements are met
+- `claims` - the decoded claims from the JWT, if all verification requirements are met
+- `errors` - a list of errors encountered during verification
+
+Neither the `header` nor the `claims` properties will be present if any verification requirements failed.
 
 ## Enforcing Usage
 
