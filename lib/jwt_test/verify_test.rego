@@ -7,81 +7,81 @@ import data.lib.jwt
 test_verify_rs256 if {
 	token := io.jwt.encode_sign({"alg": "RS256"}, {"payload": "here"}, rsa_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_rs384 if {
 	token := io.jwt.encode_sign({"alg": "RS384"}, {"payload": "here"}, rsa_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_rs512 if {
 	token := io.jwt.encode_sign({"alg": "RS512"}, {"payload": "here"}, rsa_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_es256 if {
 	token := io.jwt.encode_sign({"alg": "ES256"}, {"payload": "here"}, ecdsa_private)
 
-	jwt.verify(token, {"jwks": {"keys": [ecdsa_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [ecdsa_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_es384 if {
 	token := io.jwt.encode_sign({"alg": "ES384"}, {"payload": "here"}, ecdsa_private)
 
-	jwt.verify(token, {"jwks": {"keys": [ecdsa_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [ecdsa_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_es512 if {
 	token := io.jwt.encode_sign({"alg": "ES512"}, {"payload": "here"}, ecdsa_private)
 
-	jwt.verify(token, {"jwks": {"keys": [ecdsa_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [ecdsa_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_ps256 if {
 	token := io.jwt.encode_sign({"alg": "PS256"}, {"payload": "here"}, rsa_pss_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_pss_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_pss_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_ps384 if {
 	token := io.jwt.encode_sign({"alg": "PS384"}, {"payload": "here"}, rsa_pss_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_pss_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_pss_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_ps512 if {
 	token := io.jwt.encode_sign({"alg": "PS512"}, {"payload": "here"}, rsa_pss_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_pss_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_pss_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_verify_all_keys_in_set if {
 	token := io.jwt.encode_sign({"alg": "PS512"}, {"payload": "here"}, rsa_pss_private)
 
-	jwt.verify(token, {"jwks": {"keys": [rsa_pss_public, ecdsa_public, rsa_pss_public]}})
+	jwt.verify_signature(token, {"jwks": {"keys": [rsa_pss_public, ecdsa_public, rsa_pss_public]}})
 
-	not jwt.verify(token, "wrong")
+	not jwt.verify_signature(token, "wrong")
 }
 
 test_invalid_algorithm if {
@@ -90,13 +90,13 @@ test_invalid_algorithm if {
 		base64url.encode_no_pad(`{"payload": "here"}`),
 	])
 
-	not jwt.verify(token, {"jwks": {"keys": [rsa_public]}})
+	not jwt.verify_signature(token, {"jwks": {"keys": [rsa_public]}})
 }
 
 test_wrong_key if {
 	token := io.jwt.encode_sign({"alg": "PS512"}, {"payload": "here"}, rsa_pss_private)
 
-	not jwt.verify(token, {"jwks": {"keys": [rsa_public]}})
+	not jwt.verify_signature(token, {"jwks": {"keys": [rsa_public]}})
 }
 
 test_verify_hs256_not_supported if {
@@ -106,7 +106,7 @@ test_verify_hs256_not_supported if {
 		{"kty": "oct", "k": base64url.encode_no_pad("supersecret")},
 	)
 
-	not jwt.verify(token, "supersecret")
+	not jwt.verify_signature(token, "supersecret")
 }
 
 rsa_private := {
