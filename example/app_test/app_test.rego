@@ -4,6 +4,22 @@ import rego.v1
 
 import data.example.app
 
+test_allow_valid_jwt if {
+	app.decision.allow with input.token as token
+		with data.lib.config.jwt as {
+			"allowed_issuers": [
+				"https://issuer1.example.com",
+				"https://issuer2.example.com",
+			],
+			"jwks": {"keys": [{
+				"kty": "RSA",
+				"n": "0uUZ4XpiWu4ds6SxR-5xH6Lxu45mwgw6FDfZVZ-vGu1tsuZaUgdrJ-smKVX4L7Qa_q2pKPPepKnWhlktwXYNIk1ILkWSMLCBBzTWgulh5TTl3WCPjpzLKS4ZX0uoCt3wylIozzDIajGpSLve_xQ6G56FtZwlUC1lMPRBOV3ULOXAP24u5fwmWE6kX_rj6VW7Q4FpWo5kIQsNIukGzX6JznbxgX9NDWXpXgD8-MhnLIWtfPFK5S-BFoQGk4fXyuOVTcWFecwlh9SPbeCSQrVv1GnXFdGW1lFljK9QIhXWK38D7mdD279jrw9UW065ktnfZ4VxjjPa2COAzYEA85eRZQ",
+				"e": "AQAB",
+			}]},
+			"input_path_jwt": "input.token",
+		}
+}
+
 token := io.jwt.encode_sign(
 	{"typ": "JWT", "alg": "RS512"},
 	{
@@ -12,10 +28,6 @@ token := io.jwt.encode_sign(
 	},
 	rsa_private_key,
 )
-
-test_allow_valid_jwt if {
-	app.allow with input.token as token
-}
 
 rsa_private_key := {
 	"kty": "RSA",

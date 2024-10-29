@@ -4,9 +4,9 @@ import rego.v1
 
 # METADATA
 # description: |
-#   Verifies provided `jwt` using `keys`, which may be either encoded as PEM (string)
-#   or provided as a JWKS (string or object). Note that HMAC verification is unsupported.
-verify(jwt, keys) if _verify(io.jwt.decode(jwt)[0].alg, jwt, _object_to_json(keys))
+#   Verifies provided `jwt` using keys found under `jwks`in the config object,
+#   which may be provided as either an object or a string
+verify(jwt, config) if _verify(io.jwt.decode(jwt)[0].alg, jwt, _object_to_json(config.jwks))
 
 _verify("RS256", jwt, keys) if io.jwt.verify_rs256(jwt, keys)
 

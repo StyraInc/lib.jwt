@@ -1,5 +1,6 @@
 # METADATA
 # description: Helper library for JWT verification and decoding in Rego
+# entrypoint: true
 # authors:
 # - The Styra Community
 # related_resources:
@@ -89,7 +90,7 @@ _claims := _decoded[1]
 
 _errors contains "no signature verification keys provided" if not _keys_provided
 
-_errors contains "signature verification failed" if not verify(_config.jwt, _config.jwks)
+_errors contains "signature verification failed" if not verify(_config.jwt, _config)
 
 _errors contains "invalid token: header missing 'alg' value" if not _headers.alg
 

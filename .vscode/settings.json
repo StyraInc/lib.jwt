@@ -3,9 +3,9 @@
     "${workspaceFolder}/example",
     "${workspaceFolder}/lib"
   ],
+  "opa.schema": "${workspaceFolder}/schema",
   "opa.env": {
     "OPA_CHECK_IGNORE": "*_test.rego",
-    "OPA_TEST_IGNORE": "*_test.rego",
     "OPA_EVAL_IGNORE": "*_test.rego"
   }
 }

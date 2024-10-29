@@ -46,7 +46,7 @@ At the heart of the library is the configuration object.
 }
 ```
 
-- `allowed_issuers` - **required** a list of allowed issuers (at least one required)
+- `allowed_issuers` - **required** a list of allowed issuers (at least one issuer is required)
   where one must match the `iss` claim from the JWT
 - `allowed_algorithms` - **optional** a list of allowed algorithms
   (default: `["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512"]`)
@@ -57,6 +57,8 @@ At the heart of the library is the configuration object.
 All examples above assume `data.lib.jwt` is imported in the policy.
 
 ### `jwt.verify(jwt, config)`
+
+
 
 ## Enforcing Usage
 
