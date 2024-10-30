@@ -131,8 +131,32 @@ _errors contains "required 'exp' claim not in token" if {
 }
 
 _errors contains "token expired" if {
-	_claims.exp + _leeway < _time_now
+	_time_now > _claims.exp + _leeway
 }
+
+_errors contains "current time before 'nbf' (not before) value" if {
+	_time_now < _claims.nbf - _leeway
+}
+
+_errors contains "configuration requires audience, but no 'aud' claim in token" if {
+	object.get(_config, "allowed_audiences", []) != []
+	not _token_aud
+}
+
+_errors contains "unknown audience (aud) or not allowed" if {
+	object.get(_config, "allowed_audiences", []) != []
+	not _token_aud_match
+}
+
+_token_aud_match if {
+	some aud in _token_aud
+	aud in _config.allowed_audiences
+}
+
+# always convert to array for simpler handling
+_token_aud := [_claims.aud] if {
+	is_string(_claims.aud)
+} else := _claims.aud
 
 _time_now := _config.time if {
 	is_number(_config.time)

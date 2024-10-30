@@ -91,7 +91,10 @@ test_decode_verify_token_expired if {
 test_decode_verify_token_expired_but_within_leeway if {
 	token := rsa_token(
 		{"alg": "RS256"},
-		{"iss": "https://foo.bar", "exp": jwt.nanos_to_seconds(time.now_ns())},
+		{
+			"iss": "https://foo.bar",
+			"exp": jwt.nanos_to_seconds(time.now_ns()),
+		},
 	)
 
 	result := jwt.decode_verify(token, {
@@ -102,6 +105,105 @@ test_decode_verify_token_expired_but_within_leeway if {
 	})
 
 	not result.errors
+}
+
+test_decode_verify_token_nbf_later_than_now if {
+	token := rsa_token(
+		{"alg": "RS256"},
+		{
+			"iss": "https://foo.bar",
+			"exp": jwt.nanos_to_seconds(time.now_ns()) + 10,
+			"nbf": jwt.nanos_to_seconds(time.now_ns()) + 5,
+		},
+	)
+
+	result := jwt.decode_verify(token, {
+		"allowed_issuers": ["https://foo.bar"],
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS256",
+	})
+
+	"current time before 'nbf' (not before) value" in result.errors
+}
+
+test_decode_verify_token_nbf_later_than_now_but_within_leeway if {
+	token := rsa_token(
+		{"alg": "RS256"},
+		{
+			"iss": "https://foo.bar",
+			"exp": jwt.nanos_to_seconds(time.now_ns()) + 10,
+			"nbf": jwt.nanos_to_seconds(time.now_ns()) + 5,
+		},
+	)
+
+	result := jwt.decode_verify(token, {
+		"allowed_issuers": ["https://foo.bar"],
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS256",
+		"leeway": 60,
+	})
+
+	not result.errors
+}
+
+test_decode_verify_token_valid_audience if {
+	token := rsa_token(
+		{"alg": "RS256"},
+		{
+			"aud": "app1",
+			"iss": "https://foo.bar",
+			"exp": jwt.nanos_to_seconds(time.now_ns()) + 10,
+		},
+	)
+
+	result := jwt.decode_verify(token, {
+		"allowed_issuers": ["https://foo.bar"],
+		"allowed_audiences": ["app1"],
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS256",
+	})
+
+	not result.errors
+}
+
+test_decode_verify_token_valid_audience_many if {
+	token := rsa_token(
+		{"alg": "RS256"},
+		{
+			"aud": "app1",
+			"iss": "https://foo.bar",
+			"exp": jwt.nanos_to_seconds(time.now_ns()) + 10,
+		},
+	)
+
+	result := jwt.decode_verify(token, {
+		"allowed_issuers": ["https://foo.bar"],
+		"allowed_audiences": ["foo", "bar", "app1"],
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS256",
+	})
+
+	not result.errors
+}
+
+test_decode_verify_token_invalid_audience if {
+	token := rsa_token(
+		{"alg": "RS256"},
+		{
+			"aud": "app2",
+			"iss": "https://foo.bar",
+			"exp": jwt.nanos_to_seconds(time.now_ns()) + 10,
+		},
+	)
+
+	result := jwt.decode_verify(token, {
+		"allowed_issuers": ["https://foo.bar"],
+		"allowed_audiences": ["app1"],
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS256",
+	})
+
+	"unknown audience (aud) or not allowed" in result.errors
 }
 
 rsa_token(headers, claims) := io.jwt.encode_sign(headers, claims, {"keys": [rsa_private]})

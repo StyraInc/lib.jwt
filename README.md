@@ -17,8 +17,7 @@ and as such, they can't be disabled:
 1. Only assymetric algorithms supported — HMAC should not be used for policy use cases
 2. The issuer (`iss`) claim is required — blindly accepting tokens from any issuer is a bad idea
 3. The `exp` claim is required — any tokens issued should have a limited lifetime
-4. The `nbf` (not before) claim will always be verified if present in token
-5. The `iat` (issued at) claim will always be verified to be in the past if present in token
+4. The `nbf` (not before) claim will always be verified to be later than current time if present in token
 
 If your need to verify tokens without these constraints, use the built-in
 [io.jwt](https://www.openpolicyagent.org/docs/latest/policy-reference/#tokens) functions instead.
@@ -51,7 +50,9 @@ a bundle `data.json` file for an entirely configuration-driven approach.
 #### Configuration Attributes
 
 - `allowed_issuers` - **required** list of allowed issuers where one must match the `iss` claim from the JWT
-- `allowed_algorithms` - **optional** a list of allowed algorithms
+- `allowed_audiences` - **optional** list of allowed audiences, where at least one audience must match the `aud`
+  claim value(s) from the token (which must have an `aud` claim if this attribute is present)
+- `allowed_algorithms` - **optional** list of allowed algorithms
   (default: `["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512"]`)
 - `jwks` - **optional** the JWK Set object to use for verifying tokens
 - `input_path_jwt` - **optional** the path in the `input` document where the library should look for the JWT
