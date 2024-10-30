@@ -89,17 +89,25 @@ _result["claims"] := _decoded[1] if count(_errors) == 0
 
 _keys_provided if count(_config.jwks) > 0
 
+_keys_provided if _config.endpoints.use_oidc_metadata
+
+_keys_provided if _config.endpoints.use_oauth2_metadata
+
+_keys_provided if _config.endpoints.jwks_uri
+
 _verified := decode_verify(input_from_config, data.lib.config.jwt) if {
 	input_from_config := object.get(input, _input_path_jwt, null)
 	input_from_config != null
 }
+
+_jwks := _config.jwks
 
 _errors contains "no signature verification keys provided" if {
 	not _keys_provided
 }
 
 _errors contains "signature verification failed" if {
-	not verify_signature(_config.jwt, _config)
+	not verify_signature(_config.jwt, _jwks)
 }
 
 _errors contains "invalid token: header missing 'alg' value" if {

@@ -6,7 +6,7 @@ import rego.v1
 # description: |
 #   Verifies provided `jwt` using keys found under `jwks`in the config object,
 #   which may be provided as either an object or a string
-verify_signature(jwt, config) if _verify(io.jwt.decode(jwt)[0].alg, jwt, _object_to_json(config.jwks))
+verify_signature(jwt, jwks) if _verify(io.jwt.decode(jwt)[0].alg, jwt, _object_to_json(jwks))
 
 _verify("RS256", jwt, keys) if io.jwt.verify_rs256(jwt, keys)
 
