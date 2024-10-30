@@ -33,7 +33,3 @@ rules:
       level: ignore
     line-length:
       non-breakable-word-threshold: 100
-
-project:
-  roots:
-    - bundle

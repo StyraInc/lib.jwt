@@ -36,9 +36,6 @@ supported_algorithms := {
 #   - `allowed_issuers` — **must** contain at least one allowed issuer
 #   - `time` — time to compare against `exp` if not current time should be used
 decode_verify(jwt, config) := result if {
-	# get verification key from conf, either via `key` or configured
-	# metadata endpoint
-
 	# regal ignore:with-outside-test-context
 	result := _result with _config as object.union(config, {"jwt": jwt})
 }
@@ -57,28 +54,24 @@ _clean_path(arr) := arr if not arr[0] == "input"
 _clean_path(arr) := array.slice(arr, 1, count(arr)) if arr[0] == "input"
 
 # METADATA
-# description: the claims of the verified JWT, from calling `decode_verify` direct
-claims := _result.claims
+# description: the claims of the verified JWT
+claims := _verified.claims if {
+	count(_verified.claims) > 0
+} else := _result.claims if {
+	count(_result.claims) > 0
+}
 
 # METADATA
-# description: the claims of the verified JWT, from config-based verification
-claims := _verified.claims
+# description: the header of the verified JWT
+header := _verified.header if {
+	count(_verified.header) > 0
+} else := _result.header
 
 # METADATA
-# description: the header of the verified JWT, from calling `decode_verify` direct
-header := _result.header
-
-# METADATA
-# description: the header of the verified JWT, from config-based verification
-header := _verified.header
-
-# METADATA
-# description: errors encountered while processing the JWT, from calling `decode_verify` direct
-errors := _result.errors
-
-# METADATA
-# description: the header of the verified JWT, from config-based verification
-errors := _verified.errors
+# description: errors encountered while processing the JWT
+errors := _verified.errors if {
+	count(_verified.errors) > 0
+} else := _result.errors
 
 _config := {}
 
@@ -88,23 +81,11 @@ _headers := _decoded[0]
 
 _claims := _decoded[1]
 
-_errors contains "no signature verification keys provided" if not _keys_provided
+_result["errors"] := _errors if count(_errors) > 0
 
-_errors contains "signature verification failed" if not verify_signature(_config.jwt, _config)
+_result["headers"] := _decoded[0] if count(_errors) == 0
 
-_errors contains "invalid token: header missing 'alg' value" if not _headers.alg
-
-_errors contains sprintf("expected %s algorithm, got %s", [_config.alg, _headers.alg]) if _config.alg != _headers.alg
-
-_errors contains sprintf("%s algorithm not supported", [_headers.alg]) if not _headers.alg in supported_algorithms
-
-_errors contains "required 'allowed_issuers' missing from configuration" if not _config.allowed_issuers
-
-_errors contains "'allowed_issuers' must contain at least one issuer" if count(_config.allowed_issuers) == 0
-
-_errors contains sprintf("issuer %s not in list of allowed issuers", [_claims.iss]) if {
-	not _claims.iss in _config.allowed_issuers
-}
+_result["claims"] := _decoded[1] if count(_errors) == 0
 
 _keys_provided if count(_config.jwks) > 0
 
@@ -113,8 +94,50 @@ _verified := decode_verify(input_from_config, data.lib.config.jwt) if {
 	input_from_config != null
 }
 
-_result["errors"] := _errors if count(_errors) > 0
+_errors contains "no signature verification keys provided" if {
+	not _keys_provided
+}
 
-_result["headers"] := _decoded[0] if count(_errors) == 0
+_errors contains "signature verification failed" if {
+	not verify_signature(_config.jwt, _config)
+}
 
-_result["claims"] := _decoded[1] if count(_errors) == 0
+_errors contains "invalid token: header missing 'alg' value" if {
+	not _headers.alg
+}
+
+_errors contains sprintf("expected %s algorithm, got %s", [_config.alg, _headers.alg]) if {
+	_config.alg != _headers.alg
+}
+
+_errors contains sprintf("%s algorithm not supported", [_headers.alg]) if {
+	not _headers.alg in supported_algorithms
+}
+
+_errors contains "required 'allowed_issuers' missing from configuration" if {
+	not _config.allowed_issuers
+}
+
+_errors contains "'allowed_issuers' must contain at least one issuer" if {
+	count(_config.allowed_issuers) == 0
+}
+
+_errors contains sprintf("issuer %s not in list of allowed issuers", [_claims.iss]) if {
+	not _claims.iss in _config.allowed_issuers
+}
+
+_errors contains "required 'exp' claim not in token" if {
+	not _claims.exp
+}
+
+_errors contains "token expired" if {
+	_claims.exp + _leeway < _time_now
+}
+
+_time_now := _config.time if {
+	is_number(_config.time)
+} else := nanos_to_seconds(time.now_ns())
+
+default _leeway := 0
+
+_leeway := _config.leeway

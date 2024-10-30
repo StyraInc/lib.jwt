@@ -5,7 +5,7 @@ import rego.v1
 import data.lib.jwt
 
 test_decode_verify_bad_key if {
-	token := rsa_token({"alg": "RS256"}, {})
+	token := rsa_token({"alg": "RS256"}, {"exp": 2730277802})
 
 	result := jwt.decode_verify(token, {"jwks": {"keys": []}, "allowed_issuers": ["https://foo.bar.com"]})
 
@@ -64,6 +64,44 @@ test_decode_verify_unsupported_algorithm if {
 	})
 
 	"HS512 algorithm not supported" in result.errors
+}
+
+test_decode_verify_missing_exp_claim if {
+	token := rsa_token({"alg": "RS256"}, {"iss": "https://foo.bar"})
+
+	result := jwt.decode_verify(token, {
+		"jwks": {"keys": [rsa_public]},
+		"alg": "ES512",
+	})
+
+	"required 'exp' claim not in token" in result.errors
+}
+
+test_decode_verify_token_expired if {
+	token := rsa_token({"alg": "RS256"}, {"iss": "https://foo.bar", "exp": 1730282176})
+
+	result := jwt.decode_verify(token, {
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS512",
+	})
+
+	"token expired" in result.errors
+}
+
+test_decode_verify_token_expired_but_within_leeway if {
+	token := rsa_token(
+		{"alg": "RS256"},
+		{"iss": "https://foo.bar", "exp": jwt.nanos_to_seconds(time.now_ns())},
+	)
+
+	result := jwt.decode_verify(token, {
+		"allowed_issuers": ["https://foo.bar"],
+		"jwks": {"keys": [rsa_public]},
+		"alg": "RS256",
+		"leeway": 5,
+	})
+
+	not result.errors
 }
 
 rsa_token(headers, claims) := io.jwt.encode_sign(headers, claims, {"keys": [rsa_private]})

@@ -5,7 +5,7 @@ import rego.v1
 import data.example.app
 
 test_allow_valid_jwt if {
-	app.decision.allow with input.token as token
+	decision := app.decision with input.token as token
 		with data.lib.config.jwt as {
 			"allowed_issuers": [
 				"https://issuer1.example.com",
@@ -18,11 +18,14 @@ test_allow_valid_jwt if {
 			}]},
 			"input_path_jwt": "input.token",
 		}
+
+	decision.allow
 }
 
 token := io.jwt.encode_sign(
 	{"typ": "JWT", "alg": "RS512"},
 	{
+		"exp": 2730277802,
 		"iss": "https://issuer1.example.com",
 		"user": {"roles": ["admin"]},
 	},
