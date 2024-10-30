@@ -1,4 +1,10 @@
 rules:
+  bugs:
+    leaked-internal-reference:
+      level: error
+      ignore:
+        files:
+          - "*_test.rego"
   custom:
     missing-metadata:
       level: error

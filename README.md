@@ -26,7 +26,21 @@ If your need to verify tokens without these constraints, use the built-in
 
 ### Configuration
 
-At the heart of the library is the `config` object.
+At the heart of the library is the `config` object. This object typically contains the allowed issuer(s), the JWKS data
+to use for verification, or the method to use to retrieve it.
+
+Example configuration using an OpenID Connect metadata endpoint to retrieve public keys for signature verification:
+
+```json
+{
+  "allowed_issuers": ["https://identity.example.com"],
+  "endpoints": {
+    "use_oidc_metadata": true
+  }
+}
+```
+
+Example configuration providing an RSA public key for verification:
 
 ```json
 {
@@ -59,6 +73,21 @@ a bundle `data.json` file for an entirely configuration-driven approach.
   when using the [config-based approach](#configuration-driven-verification)
 - `time` - **optional** the time to use for verification, UNIX epoch time, seconds (default: current time)
 - `leeway` - **optional** the leeway in seconds to allow for `exp`, `nbf` and `iat` claims (default: `0`)
+- `endpoints`
+  - `use_oidc_metadata` - **optional** set to `true` use OpenID Connect metadata endpoint for retrieving JWKS data
+  - `use_oauth2_metadata` - **optional** set to `true` use OAuth 2.0 metadata endpoint for retrieving JWKS data
+  - `jwks_uri` - **optional** URL to a JWKS endpoint to use for verifying tokens
+  - `metadata_cache_duration` - **optional** duration in seconds to cache metadata (default: `3600`)
+  - `jwks_cache_duration` - **optional** duration in seconds to cache JWKS data (default: `3600`)
+
+#### Using `endpoints`
+
+In scenarios where Oauth 2.0 or OpenID Connect is used, public key materials (JWKS) can be retrieved via the metadata
+endpoint — and its pointer to a `jwks_uri` — of the issuer (i.e. `iss` claim from the token). This is a convenient way
+to defer distribution of keys to an identity server rather than embedding them in OPA's data or policies.
+
+Note that all requests to metadata or JWKS endpoints are cached for a configurable duration (default, 1 hour). Setting
+this to the highest possible duration is recommended to avoid unnecessary requests to the issuer's endpoints.
 
 ## Configuration-driven Verification
 
@@ -83,14 +112,8 @@ Given a bundle containing a `data.json` or `data.yaml` at its root, where the co
         "allowed_issuers": [
           "https://issuer1.example.com"
         ],
-        "jwks": {
-          "keys": [
-            {
-              "kty": "RSA",
-              "n": "0uUZ4XpiWu4ds6SxR.....",
-              "e": "AQAB"
-            }
-          ]
+        "endpoints": {
+          "use_oidc_metadata": true
         },
         "input_path_jwt": "input.token"
       }
