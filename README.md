@@ -30,9 +30,7 @@ If your need to verify tokens without these constraints, use the
 The following steps assume that your JWT's are issued by an identity server supporting either OAuth 2.0 or OpenID
 Connect discovery endpoints. For other options, see the [Configuration](#configuration) section below.
 
-#### 1. Create a configuration file for `lib.jwt` in the root of your bundle:
-
-**data.yaml (or data.json)**
+#### 1. Create a configuration file (data.yaml or data.json) for `lib.jwt` in the root of your bundle:
 
 ```yaml
 lib:
@@ -54,8 +52,6 @@ opa build --bundle app lib
 ```
 
 #### 3. Write a policy that uses the `lib.jwt` library:
-
-**policy.rego**
 
 ```rego
 package app.authz
@@ -80,16 +76,18 @@ allow if {
 
 But wait, where's the code to verify the token? That's all handled by the library! How?
 
-1. The library will retrieve the JWT in the input document at the path provided by `input_path_jwt`
-2. The `iss` claim in the token will be checked against the allowed issuers, and if it matches, will
-   fetch the public keys from the issuer's OAuth/OIDC metadata endpoint, and use them to verify the token
-3. On successful verification, the claims from the token will be available in the `jwt` object under `claims`,
-   and in case of errors (including other constraints failing), they will predictably be available under `errors`.
+1. The library retrieves the JWT in the `input` document at the path provided by `input_path_jwt`
+2. The `iss` claim in the token is checked against the `allowed_issuers`, and if it matches, the library
+   fetches the public keys from the issuer's OAuth/OIDC metadata endpoint — and use them to verify the token
+3. On successful verification, the claims from the token are made be available in the `jwt` object under `claims`,
+   and in case of errors (including other constraints failing), the error messages ae predictably made available
+   under `errors`
 
-**Tip:** If you're unsure about the issuer's discovery capabilities, check the `iss` claim in the token for the HTTPS
-URL of the issuer. Take this URL and append `/.well-known/openid-configuration` to get its OIDC metadata endpoint, or
-`/.well-known/oauth-authorization-server` for its OAuth 2.0 metadata endpoint. If these resolve to a JSON document,
-you're good to go!
+> [!TIP]
+> If you're unsure about your token issuer's discovery capabilities, check the `iss` claim in the token for the HTTPS
+> URL of the issuer. Take this URL and append `/.well-known/openid-configuration` to get its OIDC metadata endpoint, or
+> `/.well-known/oauth-authorization-server` for its OAuth 2.0 metadata endpoint. If these resolve to a JSON document,
+> you're good to go!
 
 While we recommend using the configuration-driven approach outlined above for those that can do so, it is also possible
 to use `lib.jwt` as a more traditional library, and without OAuth 2.0 or OpenID Connect metadata endpoints.
