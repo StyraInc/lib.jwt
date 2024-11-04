@@ -6,6 +6,7 @@ An opinionated library for safely verifying and decoding JSON Web Tokens (JWTs) 
 
 - A fully [configuration-driven approach](#configuration-driven-verification) to token verification
 - Or if you prefer, use like a traditional library — import and use verification [functions](#functions)
+- Support for OAuth 2.0 and OpenID Connect metadata endpoints for retrieving verification keys without configuration
 - Default verification constraints based on [best practices](https://datatracker.ietf.org/doc/html/rfc8725)
 - Clear error messages, describing exactly which constraints failed and why
 
@@ -82,7 +83,7 @@ a bundle `data.json` file for an entirely configuration-driven approach.
 
 #### Using `endpoints`
 
-In scenarios where Oauth 2.0 or OpenID Connect is used, public key materials (JWKS) can be retrieved via the metadata
+In scenarios where OAuth 2.0 or OpenID Connect is used, public key materials (JWKS) can be retrieved via the metadata
 endpoint — and its pointer to a `jwks_uri` — of the issuer (i.e. `iss` claim from the token). This is a convenient way
 to defer distribution of keys to an identity server rather than embedding them in OPA's data or policies.
 

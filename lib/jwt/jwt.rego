@@ -10,6 +10,10 @@
 #     ref: https://www.rfc-editor.org/rfc/rfc7515
 #   - description: JSON Web Token Best Current Practices
 #     ref: https://www.rfc-editor.org/rfc/rfc8725
+#   - description: OpenID Connect Discovery 1.0
+#     ref: https://openid.net/specs/openid-connect-discovery-1_0.html
+#   - description: OAuth 2.0 Authorization Server Metadata
+#     ref: https://datatracker.ietf.org/doc/html/rfc8414
 package lib.jwt
 
 import rego.v1
