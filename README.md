@@ -6,7 +6,7 @@ An opinionated library for safely verifying and decoding JSON Web Tokens (JWTs) 
 
 - A fully [configuration-driven approach](#configuration-driven-verification) to token verification
 - Or if you prefer, use like a traditional library — import and use verification [functions](#functions)
-- Support for OAuth 2.0 and OpenID Connect metadata endpoints for retrieving verification keys without configuration
+- Use [OAuth 2.0](https://www.rfc-editor.org/rfc/rfc8414) or [OpenID Connect](https://openid.net/specs/openid-connect-discovery-1_0.html) metadata endpoints to get verification keys without configuration
 - Default verification constraints based on [best practices](https://datatracker.ietf.org/doc/html/rfc8725)
 - Clear error messages, describing exactly which constraints failed and why
 
@@ -20,23 +20,92 @@ and as such, they can't be disabled:
 3. The `exp` claim is required — any tokens issued should have a limited lifetime
 4. The `nbf` (not before) claim will always be verified to be later than current time if present in token
 
-If your need to verify tokens without these constraints, use the built-in
-[io.jwt](https://www.openpolicyagent.org/docs/latest/policy-reference/#tokens) functions instead.
+If your need to verify tokens without these constraints, use the
+[io.jwt](https://www.openpolicyagent.org/docs/latest/policy-reference/#tokens) functions from OPA instead.
 
 ## Usage
+
+### Quick Start
+
+The following steps assume that your JWT's are issued by an identity server supporting either OAuth 2.0 or OpenID
+Connect discovery endpoints. For other options, see the [Configuration](#configuration) section below.
+
+#### 1. Create a configuration file for `lib.jwt` in the root of your bundle:
+
+**data.yaml (or data.json)**
+
+```yaml
+lib:
+  config:
+    jwt:
+      allowed_issuers:
+        - https://identity.example.com # put the issuer(s) of your JWTs here
+      endpoints:
+        use_oidc_metadata: true        # or use_oauth2_metadata for OAuth 2.0
+      input_path_jwt: input.token      # where in the input document to find the JWT
+```
+
+#### 2. Place the library in your bundle
+
+Either by moving the directory there, or simply build your bundle later with `opa build` pointed at the library:
+
+```shell
+opa build --bundle app lib
+```
+
+#### 3. Write a policy that uses the `lib.jwt` library:
+
+**policy.rego**
+
+```rego
+package app.authz
+
+import rego.v1
+
+import data.lib.jwt
+
+# add rules using claims from the JWT
+
+allow if {
+    "admin" in jwt.claims.user.roles
+}
+
+allow if {
+    input.request.method == "GET"
+
+    jwt.claims.email_verified == true
+    endswith(jwt.claims.email, "@acmecorp.com")
+}
+```
+
+But wait, where's the code to verify the token? That's all handled by the library! How?
+
+1. The library will retrieve the JWT in the input document at the path provided by `input_path_jwt`
+2. The `iss` claim in the token will be checked against the allowed issuers, and if it matches, will
+   fetch the public keys from the issuer's OAuth/OIDC metadata endpoint, and use them to verify the token
+3. On successful verification, the claims from the token will be available in the `jwt` object under `claims`,
+   and in case of errors (including other constraints failing), they will predictably be available under `errors`.
+
+**Tip:** If you're unsure about the issuer's discovery capabilities, check the `iss` claim in the token for the HTTPS
+URL of the issuer. Take this URL and append `/.well-known/openid-configuration` to get its OIDC metadata endpoint, or
+`/.well-known/oauth-authorization-server` for its OAuth 2.0 metadata endpoint. If these resolve to a JSON document,
+you're good to go!
+
+While we recommend using the configuration-driven approach outlined above for those that can do so, it is also possible
+to use `lib.jwt` as a more traditional library, and without OAuth 2.0 or OpenID Connect metadata endpoints.
 
 ### Configuration
 
 At the heart of the library is the `config` object. This object typically contains the allowed issuer(s), the JWKS data
 to use for verification, or the method to use to retrieve it.
 
-Example configuration using an OpenID Connect metadata endpoint to retrieve public keys for signature verification:
+Example configuration using an OAuth 2.0 metadata endpoint to retrieve public keys for signature verification:
 
 ```json
 {
   "allowed_issuers": ["https://identity.example.com"],
   "endpoints": {
-    "use_oidc_metadata": true
+    "use_oauth2_metadata": true
   }
 }
 ```
@@ -51,7 +120,7 @@ Example configuration providing an RSA public key for verification:
     "keys": [
       {
         "kty": "RSA",
-        "n": "0uUZ4XpiWu4ds6SxR-5xH6Lxu45mwgw6FDfZVZ-vGu1tsuZaUgdrJ-smKVX4L7Qa_q2pKPPepKnWhlktwXYNIk1ILkWSMLCBBzTWgulh5TTl3WCPjpzLKS4ZX0uoCt3wylIozzDIajGpSLve_xQ6G56FtZwlUC1lMPRBOV3ULOXAP24u5fwmWE6kX_rj6VW7Q4FpWo5kIQsNIukGzX6JznbxgX9NDWXpXgD8-MhnLIWtfPFK5S-BFoQGk4fXyuOVTcWFecwlh9SPbeCSQrVv1GnXFdGW1lFljK9QIhXWK38D7mdD279jrw9UW065ktnfZ4VxjjPa2COAzYEA85eRZQ",
+        "n": "0uUZ4XpiWu4ds6Sx....",
         "e": "AQAB"
       }
     ]
@@ -192,7 +261,7 @@ This can be achieved using two different approaches.
 
 ### Regal
 
-Another, more flexible option, is to use [Regal](https://docs.styra.com/regal) and the custom
+The most flexible option is to use [Regal](https://docs.styra.com/regal), and the custom
 [forbidden-function-call](https://docs.styra.com/regal/rules/custom/forbidden-function-call) rule to ensure that none
 of the built-in JWT functions are used directly (or at least, only a subset of them). An example Regal configuration to
 forbid the use of any built-in function for verification of JWTs might like this:
@@ -227,7 +296,7 @@ to handle verification.
 
 ### Capabilities
 
-The first option is to use the
+The next option is to use the
 [capabilities feature](https://www.openpolicyagent.org/docs/latest/deployments/#capabilities) of OPA to restrict the
 available built-in functions at the time of building a bundle for production (likely in CI/CD).
 
@@ -262,28 +331,3 @@ two options for verifying tokens, including standard claims such as `exp` and `i
 
 This library attempts to bridge the gap between these two options by providing a set of functions and rules to help
 users verify JWTs and related claims in a more standardized manner.
-
-## Testing
-
-To create JWKs from PEMs, [jwker](https://github.com/jphastings/jwker) is a useful tool.
-
-### Keys
-
-#### Generate RSA keys
-
-```bash
-openssl genrsa -out private.pem 2048
-openssl rsa -in private.pem -pubout -out public.pem
-jwker public.pem public.jwk
-jwker private.pem private.jwk
-```
-
-#### Generate ECDSA keys
-
-```bash
-openssl ecparam -name prime256v1 -genkey -noout -out private.pem
-openssl ec -in private.pem -pubout -out public.pem
-jwker public.pem public.jwk
-jwker private.pem private.jwk
-```
-
