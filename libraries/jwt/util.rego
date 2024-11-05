@@ -1,4 +1,4 @@
-package lib.jwt
+package libraries.jwt
 
 import rego.v1
 

@@ -14,7 +14,7 @@
 #     ref: https://openid.net/specs/openid-connect-discovery-1_0.html
 #   - description: OAuth 2.0 Authorization Server Metadata
 #     ref: https://datatracker.ietf.org/doc/html/rfc8414
-package lib.jwt
+package libraries.jwt
 
 import rego.v1
 

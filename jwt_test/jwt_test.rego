@@ -1,4 +1,4 @@
-package lib.jwt_test
+package libraries.jwt_test
 
 import rego.v1
 
