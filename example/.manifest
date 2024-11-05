@@ -1,3 +1,0 @@
-{
-    "roots": ["example/app", "lib/config/jwt"]
-}
