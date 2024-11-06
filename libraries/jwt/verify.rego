@@ -2,6 +2,8 @@ package libraries.jwt
 
 import rego.v1
 
+# deleteme
+
 # METADATA
 # description: |
 #   Verifies provided `jwt` using keys found under `jwks`in the config object,
