@@ -329,3 +329,8 @@ two options for verifying tokens, including standard claims such as `exp` and `i
 
 This library attempts to bridge the gap between these two options by providing a set of functions and rules to help
 users verify JWTs and related claims in a more standardized manner.
+
+## Community
+
+For questions, discussions and announcements related to Styra products, services and open source projects, please join
+the Styra community on [Slack](https://communityinviter.com/apps/styracommunity/signup)!
