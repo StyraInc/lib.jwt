@@ -4,8 +4,6 @@
 #   - data.lib.jwt: schema["lib.jwt.schema"]
 package example.app
 
-import rego.v1
-
 import data.lib.jwt
 
 # METADATA

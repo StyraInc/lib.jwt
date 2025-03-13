@@ -1,7 +1,5 @@
 package lib.jwt
 
-import rego.v1
-
 _jwks := _jwks_response.body if {
 	_jwks_response.status_code == 200
 }

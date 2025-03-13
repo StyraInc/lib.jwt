@@ -1,7 +1,5 @@
 package lib.jwt
 
-import rego.v1
-
 # METADATA
 # description: |
 #   Verifies provided `jwt` using keys found under `jwks`in the config object,

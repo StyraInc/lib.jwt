@@ -56,8 +56,6 @@ opa build --bundle app lib
 ```rego
 package app.authz
 
-import rego.v1
-
 import data.lib.jwt
 
 # add rules using claims from the JWT
