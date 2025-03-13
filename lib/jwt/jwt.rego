@@ -16,8 +16,6 @@
 #     ref: https://datatracker.ietf.org/doc/html/rfc8414
 package lib.jwt
 
-import rego.v1
-
 # METADATA
 # description: |
 #   All algorithms supported by OPA, in uppercase. Note that the symmetric

@@ -1,7 +1,5 @@
 package lib.jwt_test
 
-import rego.v1
-
 import data.lib.jwt
 
 test_decode_verify_bad_key if {

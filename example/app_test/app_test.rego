@@ -1,7 +1,5 @@
 package example.app_test
 
-import rego.v1
-
 import data.example.app
 
 test_allow_valid_jwt if {

@@ -1,7 +1,5 @@
 package lib.jwt_test
 
-import rego.v1
-
 import data.lib.jwt
 
 test_only_one_jwks_provider_allowed if {
