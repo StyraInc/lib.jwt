@@ -15,7 +15,7 @@ An opinionated library for safely verifying and decoding JSON Web Tokens (JWTs) 
 While most constraints are configurable/optional, we strongly feel that the following constraints should be enforced,
 and as such, they can't be disabled:
 
-1. Only assymetric algorithms supported — HMAC should not be used for policy use cases
+1. Only asymmetric algorithms are supported — HMAC should not be used for policy use cases
 2. The issuer (`iss`) claim is required — blindly accepting tokens from any issuer is a bad idea
 3. The `exp` claim is required — any tokens issued should have a limited lifetime
 4. The `nbf` (not before) claim will always be verified to be later than current time if present in token
